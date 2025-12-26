@@ -1,11 +1,8 @@
 package com.footbase.controller;
 
 import com.footbase.entity.Mac;
+import com.footbase.patterns.facade.MacIstatistikFacade;
 import com.footbase.repository.KullaniciRepository;
-import com.footbase.repository.MacDurumGecmisiRepository;
-import com.footbase.repository.MacMedyaRepository;
-import com.footbase.repository.MacOyuncuOlaylariRepository;
-import com.footbase.repository.MacTakimlariRepository;
 import com.footbase.security.JwtUtil;
 import com.footbase.service.MacService;
 import com.footbase.service.YorumService;
@@ -20,6 +17,9 @@ import java.util.Map;
 /**
  * Maç controller'ı
  * Maç işlemleri endpoint'lerini içerir
+ * 
+ * ✨ Facade Pattern kullanılarak refactor edildi!
+ * Artık 4 repository bağımlılığı yerine tek bir facade var.
  */
 @RestController
 @RequestMapping("/api/matches")
@@ -38,17 +38,12 @@ public class MacController {
     @Autowired
     private KullaniciRepository kullaniciRepository;
     
+    /**
+     * Facade Pattern: Tüm maç istatistik işlemleri bu facade üzerinden yapılıyor
+     * Controller artık "thin" (ince) - repository detaylarından bağımsız
+     */
     @Autowired
-    private MacTakimlariRepository macTakimlariRepository;
-    
-    @Autowired
-    private MacOyuncuOlaylariRepository macOyuncuOlaylariRepository;
-    
-    @Autowired
-    private MacMedyaRepository macMedyaRepository;
-    
-    @Autowired
-    private MacDurumGecmisiRepository macDurumGecmisiRepository;
+    private MacIstatistikFacade macIstatistikFacade;
 
     /**
      * Tüm maçları getirir
@@ -60,7 +55,7 @@ public class MacController {
     }
 
     /**
-     * ID'ye göre maç getirir
+     * ID'ye göre maç getirir (sadece temel bilgiler)
      * @param id Maç ID'si
      * @return Maç bilgileri
      */
@@ -68,6 +63,32 @@ public class MacController {
     public ResponseEntity<?> macGetir(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(macService.macGetir(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
+        }
+    }
+    
+    /**
+     * ID'ye göre maçın TÜM detaylarını getirir (Facade Pattern ile)
+     * 
+     * ✨ YENİ ENDPOINT - Facade Pattern kullanılıyor!
+     * 
+     * Bu endpoint tek seferde şunları döndürür:
+     * - Maç bilgileri
+     * - Takımlar
+     * - Olaylar (goller, kartlar)
+     * - Medya (fotoğraflar, videolar)
+     * - Durum geçmişi
+     * 
+     * Frontend tek istekle tüm detayları alır → Performans artar! 🚀
+     * 
+     * @param id Maç ID'si
+     * @return Tüm maç detaylarını içeren DTO
+     */
+    @GetMapping("/{id}/detayli")
+    public ResponseEntity<?> macDetaylariniGetir(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(macIstatistikFacade.macDetaylariniGetir(id));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
         }
@@ -130,13 +151,15 @@ public class MacController {
 
     /**
      * Maç takımlarını getirir
+     * ✨ Facade Pattern ile refactor edildi
+     * 
      * @param id Maç ID'si
      * @return Takım listesi
      */
     @GetMapping("/{id}/teams")
     public ResponseEntity<?> macTakimlariniGetir(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(macTakimlariRepository.findByMacIdWithDetails(id));
+            return ResponseEntity.ok(macIstatistikFacade.macTakimlariniGetir(id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
         }
@@ -144,13 +167,15 @@ public class MacController {
 
     /**
      * Maç olaylarını getirir (gol, kart)
+     * ✨ Facade Pattern ile refactor edildi
+     * 
      * @param id Maç ID'si
      * @return Olay listesi
      */
     @GetMapping("/{id}/events")
     public ResponseEntity<?> macOlaylariniGetir(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(macOyuncuOlaylariRepository.findByMacIdWithDetails(id));
+            return ResponseEntity.ok(macIstatistikFacade.macOlaylariniGetir(id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
         }
@@ -158,13 +183,15 @@ public class MacController {
 
     /**
      * Maç medyasını getirir
+     * ✨ Facade Pattern ile refactor edildi
+     * 
      * @param id Maç ID'si
      * @return Medya listesi
      */
     @GetMapping("/{id}/media")
     public ResponseEntity<?> macMedyasiniGetir(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(macMedyaRepository.findByMacIdWithDetails(id));
+            return ResponseEntity.ok(macIstatistikFacade.macMedyasiniGetir(id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
         }
@@ -172,13 +199,15 @@ public class MacController {
 
     /**
      * Maç durum geçmişini getirir
+     * ✨ Facade Pattern ile refactor edildi
+     * 
      * @param id Maç ID'si
      * @return Durum geçmişi listesi
      */
     @GetMapping("/{id}/status-history")
     public ResponseEntity<?> macDurumGecmisiniGetir(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(macDurumGecmisiRepository.findByMacIdWithDetails(id));
+            return ResponseEntity.ok(macIstatistikFacade.macDurumGecmisiniGetir(id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
         }

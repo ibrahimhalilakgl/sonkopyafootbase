@@ -107,23 +107,24 @@ public class Mac {
     private Stadyum stadyum;
 
     /**
-     * Maçın ligi
+     * Maçın ligi (takımlardan hesaplanır)
+     * Not: Veritabanında lig_id kolonu yok, bu yüzden @Transient
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lig_id")
+    @Transient
     private Lig lig;
 
     /**
      * Maçın organizasyonu (Süper Lig, Champions League vb.)
+     * Not: Veritabanında organizasyon_id kolonu yok, bu yüzden @Transient
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organizasyon_id")
+    @Transient
     private Organizasyon organizasyon;
 
     /**
      * Maç notu/açıklaması
+     * Not: Veritabanında 'not' kolonu yok, bu yüzden @Transient
      */
-    @Column(name = "not", columnDefinition = "TEXT")
+    @Transient
     private String not;
 
     /**

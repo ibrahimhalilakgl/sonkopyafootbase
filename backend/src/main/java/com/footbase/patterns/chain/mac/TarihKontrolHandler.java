@@ -1,0 +1,82 @@
+package com.footbase.patterns.chain.mac;
+
+import com.footbase.entity.Mac;
+import com.footbase.patterns.chain.HandlerResult;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+/**
+ * Tarih Kontrol Handler
+ * 
+ * Maç tarihini ve saatini kontrol eder:
+ * - Geçmiş tarih kontrolü
+ * - Çok uzak gelecek kontrolü
+ * - Saat kontrolü
+ * 
+ * @author FootBase Takımı
+ * @version 1.0
+ */
+@Component
+public class TarihKontrolHandler extends MacOnayHandler {
+    
+    /**
+     * Maksimum gelecek gün sayısı (1 yıl)
+     */
+    private static final int MAX_GELECEK_GUN = 365;
+    
+    public TarihKontrolHandler() {
+        this.priority = 1;
+        logger.info("📅 TarihKontrolHandler oluşturuldu");
+    }
+    
+    @Override
+    protected HandlerResult doHandle(Mac mac) {
+        LocalDate tarih = mac.getTarih();
+        LocalTime saat = mac.getSaat();
+        
+        // Tarih kontrolü
+        if (tarih == null) {
+            return HandlerResult.failure("Maç tarihi zorunludur", getHandlerName());
+        }
+        
+        // Saat kontrolü
+        if (saat == null) {
+            return HandlerResult.failure("Maç saati zorunludur", getHandlerName());
+        }
+        
+        LocalDate bugun = LocalDate.now();
+        
+        // Geçmiş tarih kontrolü (yeni maç için)
+        if (mac.getId() == null && tarih.isBefore(bugun)) {
+            logMacAction(mac, "HATA: Geçmiş tarih - " + tarih);
+            return HandlerResult.failure(
+                "Maç tarihi geçmişte olamaz",
+                getHandlerName()
+            );
+        }
+        
+        // Çok uzak gelecek kontrolü
+        if (tarih.isAfter(bugun.plusDays(MAX_GELECEK_GUN))) {
+            logMacAction(mac, "HATA: Çok uzak gelecek - " + tarih);
+            return HandlerResult.failure(
+                String.format("Maç tarihi en fazla %d gün sonrası olabilir", MAX_GELECEK_GUN),
+                getHandlerName()
+            );
+        }
+        
+        // Bugün ise saat kontrolü
+        if (tarih.isEqual(bugun)) {
+            LocalTime simdi = LocalTime.now();
+            if (saat.isBefore(simdi.minusHours(1))) { // 1 saat tolerans
+                logMacAction(mac, "UYARI: Bugün için geçmiş saat - " + saat);
+                // Warning - engelleme
+            }
+        }
+        
+        logMacAction(mac, String.format("Tarih kontrolü BAŞARILI (%s %s)", tarih, saat));
+        return HandlerResult.success();
+    }
+}
+
