@@ -7,18 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * Yorum Moderasyon Zinciri (Chain Manager)
- * 
- * Yorum moderasyon handler'larını yönetir ve zinciri kurar.
- * Chain of Responsibility Pattern'in Context sınıfı.
- * 
- * MODERASYON ZİNCİRİ:
- * Yorum → Küfür Filtresi → Spam Kontrolü → Uzunluk Kontrolü → Link Kontrolü → ✅
- * 
- * @author FootBase Takımı
- * @version 1.0
- */
 @Component
 public class YorumModerationChain {
     
@@ -39,17 +27,13 @@ public class YorumModerationChain {
     private YorumHandler chain;
     
     public YorumModerationChain() {
-        logger.info("⛓️ YorumModerationChain oluşturuldu (Chain of Responsibility Pattern)");
+        logger.info("⛓️ YorumModerationChain oluşturuldu");
     }
     
-    /**
-     * Zinciri kurar (PostConstruct ile otomatik)
-     */
     @jakarta.annotation.PostConstruct
     public void buildChain() {
         logger.info("🔗 Yorum moderasyon zinciri kuruluyor...");
         
-        // Zinciri kur: Küfür → Spam → Uzunluk → Link
         kufurFiltresi.setNext(spamKontrol)
                      .setNext(uzunlukKontrol)
                      .setNext(linkKontrol);
@@ -59,12 +43,6 @@ public class YorumModerationChain {
         logger.info("✅ Zincir kuruldu: {}", chain.visualizeChain());
     }
     
-    /**
-     * Yorumu moderasyon zincirinden geçirir
-     * 
-     * @param yorum Kontrol edilecek yorum
-     * @return Moderasyon sonucu
-     */
     public HandlerResult moderate(Yorum yorum) {
         logger.info("═══════════════════════════════════════════════════════");
         logger.info("💬 YORUM MODERASYONU BAŞLIYOR");
@@ -73,7 +51,6 @@ public class YorumModerationChain {
         logger.info("Kullanıcı: {}", yorum.getKullanici() != null ? yorum.getKullanici().getEmail() : "Bilinmiyor");
         logger.info("───────────────────────────────────────────────────────");
         
-        // Zinciri çalıştır
         HandlerResult result = chain.handle(yorum);
         
         logger.info("───────────────────────────────────────────────────────");
@@ -87,23 +64,11 @@ public class YorumModerationChain {
         return result;
     }
     
-    /**
-     * Hızlı kontrol - sadece sonuç döndürür (log'suz)
-     * 
-     * @param yorum Kontrol edilecek yorum
-     * @return Başarılı ise true
-     */
     public boolean quickCheck(Yorum yorum) {
         return chain.handle(yorum).isSuccess();
     }
     
-    /**
-     * Zinciri görselleştirir
-     * 
-     * @return Zincir görselleştirmesi
-     */
     public String getChainVisualization() {
         return chain.visualizeChain();
     }
 }
-

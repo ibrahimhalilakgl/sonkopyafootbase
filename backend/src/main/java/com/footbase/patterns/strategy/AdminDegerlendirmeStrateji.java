@@ -4,19 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * Admin Değerlendirme Stratejisi (Concrete Strategy)
- * 
- * Admin kullanıcıların değerlendirmelerini 3x ağırlıkla hesaplar.
- * En yüksek etki gücü!
- * 
- * ÖRNEK:
- * - Admin 5 yıldız verir → 5 × 3 = 15 puan
- * - Admin 3 yıldız verir → 3 × 3 = 9 puan
- * 
- * @author FootBase Takımı
- * @version 1.0
- */
 @Component
 public class AdminDegerlendirmeStrateji implements DegerlendirmeStrateji {
     
@@ -25,7 +12,6 @@ public class AdminDegerlendirmeStrateji implements DegerlendirmeStrateji {
     
     @Override
     public double puanHesapla(int yildizSayisi) {
-        // Geçerlilik kontrolü
         if (yildizSayisi < 1 || yildizSayisi > 5) {
             logger.error("❌ Geçersiz yıldız sayısı: {} (1-5 arası olmalı)", yildizSayisi);
             throw new IllegalArgumentException("Yıldız sayısı 1-5 arasında olmalı!");
@@ -51,13 +37,11 @@ public class AdminDegerlendirmeStrateji implements DegerlendirmeStrateji {
     
     @Override
     public String getAciklama() {
-        return "Admin değerlendirmeleri 3 kat ağırlıklıdır (en yüksek etki)";
+        return "Admin değerlendirmeleri 3 kat ağırlıklıdır";
     }
     
     @Override
     public String toString() {
-        return String.format("AdminDegerlendirmeStrateji{agirlik=%.1fx, aciklama='%s'}", 
-                           AGIRLIK, getAciklama());
+        return String.format("AdminDegerlendirmeStrateji{agirlik=%.1fx}", AGIRLIK);
     }
 }
-

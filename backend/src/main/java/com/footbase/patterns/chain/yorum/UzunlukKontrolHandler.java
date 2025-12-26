@@ -4,32 +4,14 @@ import com.footbase.entity.Yorum;
 import com.footbase.patterns.chain.HandlerResult;
 import org.springframework.stereotype.Component;
 
-/**
- * Uzunluk Kontrol Handler
- * 
- * Yorum uzunluğunu kontrol eder:
- * - Minimum uzunluk kontrolü
- * - Maksimum uzunluk kontrolü
- * - Boşluk karakteri kontrolü
- * 
- * @author FootBase Takımı
- * @version 1.0
- */
 @Component
 public class UzunlukKontrolHandler extends YorumHandler {
     
-    /**
-     * Minimum yorum uzunluğu
-     */
     private static final int MIN_UZUNLUK = 3;
-    
-    /**
-     * Maksimum yorum uzunluğu
-     */
     private static final int MAX_UZUNLUK = 500;
     
     public UzunlukKontrolHandler() {
-        this.priority = 3; // Üçüncü öncelik
+        this.priority = 3;
         logger.info("📏 UzunlukKontrolHandler oluşturuldu");
     }
     
@@ -44,7 +26,6 @@ public class UzunlukKontrolHandler extends YorumHandler {
         String mesajTrimmed = mesaj.trim();
         int uzunluk = mesajTrimmed.length();
         
-        // Minimum uzunluk kontrolü
         if (uzunluk < MIN_UZUNLUK) {
             logYorumAction(yorum, String.format("UZUNLUK HATASI: %d karakter (min: %d)", uzunluk, MIN_UZUNLUK));
             return HandlerResult.failure(
@@ -53,7 +34,6 @@ public class UzunlukKontrolHandler extends YorumHandler {
             );
         }
         
-        // Maksimum uzunluk kontrolü
         if (uzunluk > MAX_UZUNLUK) {
             logYorumAction(yorum, String.format("UZUNLUK HATASI: %d karakter (max: %d)", uzunluk, MAX_UZUNLUK));
             return HandlerResult.failure(
@@ -62,7 +42,6 @@ public class UzunlukKontrolHandler extends YorumHandler {
             );
         }
         
-        // Sadece boşluk karakteri kontrolü
         if (mesajTrimmed.isEmpty() || mesajTrimmed.chars().allMatch(Character::isWhitespace)) {
             logYorumAction(yorum, "HATA: Sadece boşluk karakteri");
             return HandlerResult.failure(
@@ -75,22 +54,11 @@ public class UzunlukKontrolHandler extends YorumHandler {
         return HandlerResult.success();
     }
     
-    /**
-     * Minimum uzunluk bilgisini döndürür
-     * 
-     * @return Minimum uzunluk
-     */
     public int getMinUzunluk() {
         return MIN_UZUNLUK;
     }
     
-    /**
-     * Maksimum uzunluk bilgisini döndürür
-     * 
-     * @return Maksimum uzunluk
-     */
     public int getMaxUzunluk() {
         return MAX_UZUNLUK;
     }
 }
-

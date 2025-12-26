@@ -8,38 +8,15 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Spam Kontrol Handler
- * 
- * Yorumlardaki spam davranışını tespit eder:
- * - Aynı mesajın tekrar gönderilmesi
- * - Çok hızlı art arda yorum yapılması
- * - Çok fazla tekrarlayan karakterler
- * 
- * @author FootBase Takımı
- * @version 1.0
- */
 @Component
 public class SpamKontrolHandler extends YorumHandler {
     
-    /**
-     * Kullanıcı son yorum zamanları (cache)
-     * Gerçek uygulamada Redis veya veritabanı kullanılabilir
-     */
     private static final Map<Long, LocalDateTime> SON_YORUM_ZAMANLARI = new HashMap<>();
-    
-    /**
-     * Minimum yorum aralığı (saniye)
-     */
     private static final int MINIMUM_YORUM_ARALIGI_SANIYE = 10;
-    
-    /**
-     * Maksimum tekrar eden karakter sayısı
-     */
     private static final int MAX_TEKRAR_KARAKTER = 5;
     
     public SpamKontrolHandler() {
-        this.priority = 2; // İkinci öncelik
+        this.priority = 2;
         logger.info("🚨 SpamKontrolHandler oluşturuldu");
     }
     
@@ -48,7 +25,6 @@ public class SpamKontrolHandler extends YorumHandler {
         String mesaj = yorum.getMesaj();
         Long kullaniciId = yorum.getKullanici() != null ? yorum.getKullanici().getId() : null;
         
-        // 1. Hız kontrolü (çok hızlı yorum)
         if (kullaniciId != null) {
             LocalDateTime sonYorum = SON_YORUM_ZAMANLARI.get(kullaniciId);
             if (sonYorum != null) {
@@ -63,11 +39,9 @@ public class SpamKontrolHandler extends YorumHandler {
                 }
             }
             
-            // Son yorum zamanını güncelle
             SON_YORUM_ZAMANLARI.put(kullaniciId, LocalDateTime.now());
         }
         
-        // 2. Tekrar eden karakter kontrolü (örn: "aaaaaaaaaa", "!!!!!!!!!")
         if (cokTekrarEdenKarakterVar(mesaj)) {
             logYorumAction(yorum, "SPAM TESPİT EDİLDİ: Çok fazla tekrar eden karakter");
             return HandlerResult.failure(
@@ -76,22 +50,14 @@ public class SpamKontrolHandler extends YorumHandler {
             );
         }
         
-        // 3. Tamamen büyük harf kontrolü
         if (tumunuBuyukHarf(mesaj)) {
             logYorumAction(yorum, "UYARI: Tamamen büyük harf");
-            // Bu durum warning olabilir, engellenmeyebilir
         }
         
         logYorumAction(yorum, "Spam kontrolü BAŞARILI");
         return HandlerResult.success();
     }
     
-    /**
-     * Çok fazla tekrar eden karakter var mı kontrol eder
-     * 
-     * @param mesaj Mesaj
-     * @return Var ise true
-     */
     private boolean cokTekrarEdenKarakterVar(String mesaj) {
         if (mesaj == null || mesaj.length() < MAX_TEKRAR_KARAKTER) {
             return false;
@@ -117,36 +83,18 @@ public class SpamKontrolHandler extends YorumHandler {
         return false;
     }
     
-    /**
-     * Tamamen büyük harf mi kontrol eder
-     * 
-     * @param mesaj Mesaj
-     * @return Tamamen büyük harf ise true
-     */
     private boolean tumunuBuyukHarf(String mesaj) {
         if (mesaj == null || mesaj.length() < 10) {
-            return false; // Kısa mesajlar için kontrol etme
+            return false;
         }
         
-        long buyukHarfSayisi = mesaj.chars()
-            .filter(Character::isUpperCase)
-            .count();
+        long buyukHarfSayisi = mesaj.chars().filter(Character::isUpperCase).count();
+        long harfSayisi = mesaj.chars().filter(Character::isLetter).count();
         
-        long harfSayisi = mesaj.chars()
-            .filter(Character::isLetter)
-            .count();
-        
-        // Harflerin %80'inden fazlası büyük harf mi?
         return harfSayisi > 0 && (buyukHarfSayisi * 100.0 / harfSayisi) > 80;
     }
     
-    /**
-     * Kullanıcının spam geçmişini temizler (test için)
-     * 
-     * @param kullaniciId Kullanıcı ID
-     */
     public void clearSpamHistory(Long kullaniciId) {
         SON_YORUM_ZAMANLARI.remove(kullaniciId);
     }
 }
-

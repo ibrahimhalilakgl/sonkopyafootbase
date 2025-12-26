@@ -7,17 +7,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Takım Kontrol Handler
- * 
- * Maç takımlarını kontrol eder:
- * - En az 2 takım olmalı
- * - Takımlar farklı olmalı
- * - Ev sahibi ve deplasman belirlenmeli
- * 
- * @author FootBase Takımı
- * @version 1.0
- */
 @Component
 public class TakimKontrolHandler extends MacOnayHandler {
     
@@ -30,34 +19,22 @@ public class TakimKontrolHandler extends MacOnayHandler {
     protected HandlerResult doHandle(Mac mac) {
         List<MacTakimlari> takimlar = mac.getMacTakimlari();
         
-        // Takım sayısı kontrolü
         if (takimlar == null || takimlar.isEmpty()) {
-            return HandlerResult.failure(
-                "Maç için takımlar belirtilmelidir",
-                getHandlerName()
-            );
+            return HandlerResult.failure("Maç için takımlar belirtilmelidir", getHandlerName());
         }
         
         if (takimlar.size() < 2) {
-            return HandlerResult.failure(
-                "Maç için en az 2 takım gereklidir",
-                getHandlerName()
-            );
+            return HandlerResult.failure("Maç için en az 2 takım gereklidir", getHandlerName());
         }
         
-        // Ev sahibi ve deplasman kontrolü
         boolean evSahibiVar = false;
         boolean deplasmanVar = false;
         
         for (MacTakimlari mt : takimlar) {
             if (mt.getTakim() == null) {
-                return HandlerResult.failure(
-                    "Takım bilgisi eksik",
-                    getHandlerName()
-                );
+                return HandlerResult.failure("Takım bilgisi eksik", getHandlerName());
             }
             
-            // evSahibi Boolean field'ı kullan
             if (Boolean.TRUE.equals(mt.getEvSahibi())) {
                 evSahibiVar = true;
             } else if (Boolean.FALSE.equals(mt.getEvSahibi())) {
@@ -66,20 +43,13 @@ public class TakimKontrolHandler extends MacOnayHandler {
         }
         
         if (!evSahibiVar) {
-            return HandlerResult.failure(
-                "Ev sahibi takım belirtilmelidir",
-                getHandlerName()
-            );
+            return HandlerResult.failure("Ev sahibi takım belirtilmelidir", getHandlerName());
         }
         
         if (!deplasmanVar) {
-            return HandlerResult.failure(
-                "Deplasman takımı belirtilmelidir",
-                getHandlerName()
-            );
+            return HandlerResult.failure("Deplasman takımı belirtilmelidir", getHandlerName());
         }
         
-        // Aynı takım kontrolü
         if (takimlar.size() >= 2) {
             Long takim1Id = takimlar.get(0).getTakim().getId();
             Long takim2Id = takimlar.get(1).getTakim().getId();
@@ -96,4 +66,3 @@ public class TakimKontrolHandler extends MacOnayHandler {
         return HandlerResult.success();
     }
 }
-

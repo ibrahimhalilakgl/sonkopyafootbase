@@ -7,29 +7,16 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Küfür Filtresi Handler
- * 
- * Yorumlardaki küfürlü içeriği filtreler.
- * Zincirin ilk basamağı (en yüksek öncelik).
- * 
- * @author FootBase Takımı
- * @version 1.0
- */
 @Component
 public class KufurFiltresiHandler extends YorumHandler {
     
-    /**
-     * Yasaklı kelimeler listesi (örnek)
-     * Gerçek uygulamada veritabanından veya config dosyasından okunabilir
-     */
     private static final List<String> YASAKLI_KELIMELER = Arrays.asList(
-        "küfür1", "küfür2", "küfür3", // Gerçek küfürleri buraya ekleyin
+        "küfür1", "küfür2", "küfür3",
         "aptal", "salak", "gerizekalı"
     );
     
     public KufurFiltresiHandler() {
-        this.priority = 1; // En yüksek öncelik
+        this.priority = 1;
         logger.info("🚫 KufurFiltresiHandler oluşturuldu");
     }
     
@@ -43,7 +30,6 @@ public class KufurFiltresiHandler extends YorumHandler {
         
         String mesajLower = mesaj.toLowerCase();
         
-        // Küfür kontrolü
         for (String yasakliKelime : YASAKLI_KELIMELER) {
             if (mesajLower.contains(yasakliKelime.toLowerCase())) {
                 logYorumAction(yorum, "KÜFÜR TESPİT EDİLDİ: " + yasakliKelime);
@@ -58,12 +44,6 @@ public class KufurFiltresiHandler extends YorumHandler {
         return HandlerResult.success();
     }
     
-    /**
-     * Küfür kelimelerini maskeler (opsiyonel özellik)
-     * 
-     * @param mesaj Orijinal mesaj
-     * @return Maskelenmiş mesaj
-     */
     public String maskProfanity(String mesaj) {
         String masked = mesaj;
         
@@ -77,4 +57,3 @@ public class KufurFiltresiHandler extends YorumHandler {
         return masked;
     }
 }
-
