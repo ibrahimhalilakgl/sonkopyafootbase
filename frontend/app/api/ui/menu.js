@@ -68,6 +68,12 @@ const editorMenu = [
     name: 'Maç Ekle',
     link: '/app/editor/match/add',
     icon: 'ion-ios-add-circle'
+  },
+  {
+    key: 'editor-match-score',
+    name: 'Skor Yönetimi',
+    link: '/app/editor/matches/score',
+    icon: 'ion-ios-football'
   }
 ];
 
@@ -77,6 +83,12 @@ const adminMenu = [
     name: 'Maç Onayları',
     link: '/app/admin/matches/approval',
     icon: 'ion-ios-checkmark-circle'
+  },
+  {
+    key: 'admin-match-score',
+    name: 'Skor Yönetimi',
+    link: '/app/admin/matches/score',
+    icon: 'ion-ios-football'
   }
 ];
 

@@ -136,7 +136,8 @@ public class MacService {
                     populateMacData(m);
                     String durum = getLatestDurum(m.getId());
                     if (durum != null) {
-                        m.setOnayDurumu(durum);
+                        m.setDurum(durum);  // durum alanını set et
+                        m.setOnayDurumu(durum);  // onayDurumu alanını da set et (geriye dönük uyumluluk için)
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -670,10 +671,13 @@ public class MacService {
                         String latestDurum = getLatestDurum(mac.getId());
                         System.out.println("  Maç ID " + mac.getId() + " -> Durum: " + latestDurum);
                         
-                        // Sadece ONAY_BEKLIYOR ve REDDEDILDI durumundakileri ekle
-                        if ("ONAY_BEKLIYOR".equals(latestDurum) || "REDDEDILDI".equals(latestDurum)) {
+                        // Sadece ONAY_BEKLIYOR, REDDEDILDI ve YAYINDA durumundakileri ekle
+                        if ("ONAY_BEKLIYOR".equals(latestDurum) || 
+                            "REDDEDILDI".equals(latestDurum) || 
+                            "YAYINDA".equals(latestDurum)) {
                             populateMacData(mac);
-                            mac.setOnayDurumu(latestDurum);
+                            mac.setDurum(latestDurum);  // durum alanını set et
+                            mac.setOnayDurumu(latestDurum);  // onayDurumu alanını da set et
                             editorMaclari.add(mac);
                             System.out.println("    ✓ Maç eklendi: " + latestDurum);
                         } else {

@@ -18,6 +18,8 @@ import EditorMatchAddPage from '../Pages/EditorMatchAddPage';
 import AdminMatchApprovalPage from '../Pages/AdminMatchApprovalPage';
 import EditorMatchEventPage from '../Pages/EditorMatchEventPage';
 import NotificationsPage from '../Pages/NotificationsPage';
+import AdminMatchScoreManagementPage from '../Pages/AdminMatchScoreManagementPage';
+import EditorMatchScoreManagementPage from '../Pages/EditorMatchScoreManagementPage';
 
 function Application(props) {
   const { history } = props;
@@ -37,7 +39,9 @@ function Application(props) {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="editor/match/add" element={<EditorMatchAddPage />} />
         <Route path="editor/match/:id/events" element={<EditorMatchEventPage />} />
+        <Route path="editor/matches/score" element={<EditorMatchScoreManagementPage />} />
         <Route path="admin/matches/approval" element={<AdminMatchApprovalPage />} />
+        <Route path="admin/matches/score" element={<AdminMatchScoreManagementPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

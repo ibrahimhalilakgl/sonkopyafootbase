@@ -3,6 +3,9 @@ package com.footbase.controller;
 import com.footbase.entity.Mac;
 import com.footbase.entity.MacOyuncuOlaylari;
 import com.footbase.entity.Oyuncu;
+import com.footbase.patterns.command.dto.MacSonlandirDTO;
+import com.footbase.patterns.command.dto.SkorGirisiDTO;
+import com.footbase.patterns.command.service.MacCommandService;
 import com.footbase.repository.MacOyuncuOlaylariRepository;
 import com.footbase.repository.MacRepository;
 import com.footbase.repository.OyuncuRepository;
@@ -38,6 +41,9 @@ public class EditorController {
     
     @Autowired
     private OyuncuRepository oyuncuRepository;
+
+    @Autowired
+    private MacCommandService macCommandService;
 
     /**
      * JWT token'dan kullanıcı ID'sini alır
@@ -226,6 +232,130 @@ public class EditorController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(Map.of("hata", "Maç sonuçlandırılırken bir hata oluştu: " + e.getMessage()));
+        }
+    }
+
+    // ========== MAÇ SKOR VE SONLANDIRMA İŞLEMLERİ (COMMAND PATTERN) ==========
+
+    /**
+     * Maça skor girişi yapar (Command Pattern)
+     * Geri alınabilir (undo)
+     * 
+     * @param skorGirisiDTO Skor girişi bilgileri
+     * @param request HTTP request (JWT token içerir)
+     * @return İşlem sonucu
+     */
+    @PostMapping("/matches/score-command")
+    public ResponseEntity<?> macSkorGirisiCommand(@RequestBody SkorGirisiDTO skorGirisiDTO, HttpServletRequest request) {
+        try {
+            Long editorId = getKullaniciIdFromToken(request);
+            if (editorId == null) {
+                return ResponseEntity.status(401).body(Map.of("hata", "Giriş yapmanız gerekiyor"));
+            }
+
+            System.out.println("⚽ Editör " + editorId + " skor girişi yapıyor (Command Pattern): " + skorGirisiDTO);
+            Map<String, Object> sonuc = macCommandService.skorGirisiYap(skorGirisiDTO, editorId);
+            
+            if ((Boolean) sonuc.get("basarili")) {
+                return ResponseEntity.ok(sonuc);
+            } else {
+                return ResponseEntity.badRequest().body(sonuc);
+            }
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("hata", "Skor girişi yapılırken bir hata oluştu: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Maçı sonlandırır (Command Pattern)
+     * Skorları girer ve durumu günceller
+     * Geri alınabilir (undo)
+     * 
+     * @param macSonlandirDTO Maç sonlandırma bilgileri
+     * @param request HTTP request (JWT token içerir)
+     * @return İşlem sonucu
+     */
+    @PostMapping("/matches/finish-command")
+    public ResponseEntity<?> macSonlandirCommand(@RequestBody MacSonlandirDTO macSonlandirDTO, HttpServletRequest request) {
+        try {
+            Long editorId = getKullaniciIdFromToken(request);
+            if (editorId == null) {
+                return ResponseEntity.status(401).body(Map.of("hata", "Giriş yapmanız gerekiyor"));
+            }
+
+            System.out.println("🏁 Editör " + editorId + " maç sonlandırıyor (Command Pattern): " + macSonlandirDTO);
+            Map<String, Object> sonuc = macCommandService.macSonlandir(macSonlandirDTO, editorId);
+            
+            if ((Boolean) sonuc.get("basarili")) {
+                return ResponseEntity.ok(sonuc);
+            } else {
+                return ResponseEntity.badRequest().body(sonuc);
+            }
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("hata", "Maç sonlandırılırken bir hata oluştu: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Son işlemi geri alır (undo)
+     * Command Pattern'ın undo özelliği
+     * 
+     * @param request HTTP request (JWT token içerir)
+     * @return İşlem sonucu
+     */
+    @PostMapping("/matches/undo")
+    public ResponseEntity<?> sonIslemGeriAl(HttpServletRequest request) {
+        try {
+            Long editorId = getKullaniciIdFromToken(request);
+            if (editorId == null) {
+                return ResponseEntity.status(401).body(Map.of("hata", "Giriş yapmanız gerekiyor"));
+            }
+
+            System.out.println("🔄 Editör " + editorId + " son işlemi geri alıyor...");
+            Map<String, Object> sonuc = macCommandService.sonIslemGeriAl(editorId);
+            
+            if ((Boolean) sonuc.get("basarili")) {
+                return ResponseEntity.ok(sonuc);
+            } else {
+                return ResponseEntity.badRequest().body(sonuc);
+            }
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("hata", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("hata", "İşlem geri alınırken bir hata oluştu: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * İşlem geçmişini getirir
+     * 
+     * @param request HTTP request (JWT token içerir)
+     * @return İşlem geçmişi
+     */
+    @GetMapping("/matches/history")
+    public ResponseEntity<?> islemGecmisiGetir(HttpServletRequest request) {
+        try {
+            Long editorId = getKullaniciIdFromToken(request);
+            if (editorId == null) {
+                return ResponseEntity.status(401).body(Map.of("hata", "Giriş yapmanız gerekiyor"));
+            }
+
+            System.out.println("📚 Editör " + editorId + " işlem geçmişini getiriyor...");
+            Map<String, Object> sonuc = macCommandService.islemGecmisiGetir();
+            return ResponseEntity.ok(sonuc);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("hata", "İşlem geçmişi getirilirken bir hata oluştu: " + e.getMessage()));
         }
     }
 }

@@ -178,6 +178,27 @@ export const editorAPI = {
     request(`${API_BASE_URL}${API_ENDPOINTS.EDITOR.FINISH_MATCH(matchId)}`, {
       method: 'POST',
     }),
+
+  // Command Pattern - Skor yönetimi (geri alınabilir)
+  updateMatchScoreCommand: (scoreData) =>
+    request(`${API_BASE_URL}/editor/matches/score-command`, {
+      method: 'POST',
+      body: JSON.stringify(scoreData),
+    }),
+
+  finishMatchCommand: (finishData) =>
+    request(`${API_BASE_URL}/editor/matches/finish-command`, {
+      method: 'POST',
+      body: JSON.stringify(finishData),
+    }),
+
+  undoLastCommand: () =>
+    request(`${API_BASE_URL}/editor/matches/undo`, {
+      method: 'POST',
+    }),
+
+  getCommandHistory: () =>
+    request(`${API_BASE_URL}/editor/matches/history`),
 };
 
 // Admin API
@@ -208,6 +229,27 @@ export const adminAPI = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+
+  // Command Pattern - Skor yönetimi (geri alınabilir)
+  updateMatchScore: (scoreData) =>
+    request(`${API_BASE_URL}/admin/matches/score`, {
+      method: 'POST',
+      body: JSON.stringify(scoreData),
+    }),
+
+  finishMatch: (finishData) =>
+    request(`${API_BASE_URL}/admin/matches/finish`, {
+      method: 'POST',
+      body: JSON.stringify(finishData),
+    }),
+
+  undoLastCommand: () =>
+    request(`${API_BASE_URL}/admin/matches/undo`, {
+      method: 'POST',
+    }),
+
+  getCommandHistory: () =>
+    request(`${API_BASE_URL}/admin/matches/history`),
 
   // Takım işlemleri
   createTeam: (data) =>
